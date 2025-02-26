@@ -1,0 +1,136 @@
+// SPDX-License-Identifier: BSD-3-Clause
+/*
+ * Copyright (c) 2025, Danila Tikhonov <danila@jiaxyga.com>
+ */
+
+/dts-v1/;
+
+#include "sm7635.dtsi"
+
+#include "pmk8550.dtsi"
+#include "pm8550vs.dtsi"
+#include "pmr735b.dtsi"
+
+/ {
+        /* Nothing Phone (3a) Pro */
+	model = "Nothing Phone (3a)";
+	compatible = "nothing,asteroids", "qcom,sm7635";
+	chassis-type = "handset";
+
+	aliases {
+		serial0 = &uart5;
+	};
+
+	chosen {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		stdout-path = "serial0:115200n8";
+                bootargs = "clk_ignore_unused pd_ignore_unused regulator_ignore_unused";
+
+		framebuffer: framebuffer@e1000000 {
+			compatible = "simple-framebuffer";
+			reg = <0x0 0xe1000000 0x0 (1080 * 2392 * 4)>;
+			width = <1080>;
+			height = <2392>;
+			stride = <(1080 * 4)>;
+			format = "a8r8g8b8";
+		};
+	};
+
+        reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		splash_region@e3940000 {
+			reg = <0x0 0xe3940000 0x0 (1080 * 2392 * 4)>;
+			no-map;
+		};
+	};
+
+	vph_pwr: vph-pwr-regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "vph_pwr";
+		regulator-min-microvolt = <3700000>;
+		regulator-max-microvolt = <3700000>;
+	};
+};
+
+&gcc {
+	protected-clocks = <GCC_PCIE_1_AUX_CLK>,
+			   <GCC_PCIE_1_AUX_CLK_SRC>,
+			   <GCC_PCIE_1_CFG_AHB_CLK>,
+			   <GCC_PCIE_1_MSTR_AXI_CLK>,
+			   <GCC_PCIE_1_PHY_RCHNG_CLK>,
+			   <GCC_PCIE_1_PHY_RCHNG_CLK_SRC>,
+			   <GCC_PCIE_1_PIPE_CLK>,
+			   <GCC_PCIE_1_PIPE_CLK_SRC>,
+			   <GCC_PCIE_1_PIPE_DIV2_CLK>,
+			   <GCC_PCIE_1_PIPE_DIV2_CLK_SRC>,
+			   <GCC_PCIE_1_SLV_AXI_CLK>,
+			   <GCC_PCIE_1_SLV_Q2A_AXI_CLK>;
+};
+
+&gpi_dma0 {
+	status = "okay";
+};
+
+&gpi_dma1 {
+	status = "okay";
+};
+
+&i2c7 {
+	/* awinic,aw20036 glyph@3a */
+};
+
+&i2c8 {
+	status = "okay";
+
+	/* ics haptic@5f */
+};
+
+&spi0 {
+	status = "okay";
+
+	/* focaltech,fts touchscreen@0 */
+};
+
+&spi6 {
+	/* st,st54 nfc@0 */
+};
+
+&qupv3_id_0 {
+	status = "okay";
+};
+
+&qupv3_id_1 {
+	status = "okay";
+};
+
+&tlmm {
+	/*
+	 * 13:
+	 * 27-30: Fingerprint reader (SPI)
+	 */
+	gpio-reserved-ranges = <13 1>, <63 2>;
+
+	/*
+		GPIO143 - ics_haptic_rst
+	*/
+};
+
+&uart5 {
+	status = "okay";
+};
+
+&uart11 {
+	/delete-property/ interrupts;
+	interrupts-extended = <&intc GIC_SPI 586 IRQ_TYPE_LEVEL_HIGH>,
+			      <&tlmm 51 IRQ_TYPE_LEVEL_HIGH>;
+
+	status = "okay";
+
+	/* Bluetooth */
+};
