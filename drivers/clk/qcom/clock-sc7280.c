@@ -18,6 +18,7 @@
 
 #define USB30_PRIM_MASTER_CLK_CMD_RCGR 0xf020
 #define USB30_PRIM_MOCK_UTMI_CLK_CMD_RCGR 0xf038
+#define UFS_PHY_AXI_CLK_CMD_RCGR 0x77024
 #define USB30_SEC_MASTER_CLK_CMD_RCGR 0x9e020
 #define USB30_SEC_MOCK_UTMI_CLK_CMD_RCGR 0x9e038
 #define PCIE_1_AUX_CLK_CMD_RCGR 0x8d058
@@ -35,6 +36,14 @@ static const struct freq_tbl ftbl_gcc_usb30_prim_master_clk_src[] = {
 static const struct freq_tbl ftbl_gcc_usb30_sec_master_clk_src[] = {
 	F(60000000, CFG_CLK_SRC_GPLL0_EVEN, 5, 0, 0),
 	F(120000000, CFG_CLK_SRC_GPLL0_EVEN, 2.5, 0, 0),
+	{ }
+};
+
+static const struct freq_tbl ftbl_gcc_ufs_phy_axi_clk_src[] = {
+	F(25000000, CFG_CLK_SRC_GPLL0_EVEN, 12, 0, 0),
+	F(75000000, CFG_CLK_SRC_GPLL0_EVEN, 4, 0, 0),
+	F(150000000, CFG_CLK_SRC_GPLL0_EVEN, 2, 0, 0),
+	F(300000000, CFG_CLK_SRC_GPLL0_EVEN, 1, 0, 0),
 	{ }
 };
 
@@ -72,12 +81,26 @@ static ulong sc7280_set_rate(struct clk *clk, ulong rate)
 	case GCC_PCIE1_PHY_RCHNG_CLK:
 		clk_rcg_set_rate(priv->base, PCIE1_PHY_RCHNG_CMD_RCGR, 5, CFG_CLK_SRC_GPLL0_EVEN);
 		return 100000000;
+	case GCC_UFS_PHY_AXI_CLK:
+		freq = qcom_find_freq(ftbl_gcc_ufs_phy_axi_clk_src, rate);
+		clk_rcg_set_rate_mnd(priv->base, UFS_PHY_AXI_CLK_CMD_RCGR,
+				     freq->pre_div, freq->m, freq->n, freq->src, 8);
+		return freq->freq;
 	default:
 		return rate;
 	}
 }
 
 static const struct gate_clk sc7280_clks[] = {
+	GATE_CLK(GCC_UFS_PHY_AXI_CLK, 0x77010, BIT(0)),
+	GATE_CLK(GCC_UFS_PHY_AHB_CLK, 0x77018, BIT(0)),
+	GATE_CLK(GCC_UFS_PHY_TX_SYMBOL_0_CLK, 0x7701c, BIT(0)),
+	GATE_CLK(GCC_UFS_PHY_RX_SYMBOL_0_CLK, 0x77020, BIT(0)),
+	GATE_CLK(GCC_UFS_PHY_UNIPRO_CORE_CLK, 0x7705c, BIT(0)),
+	GATE_CLK(GCC_UFS_PHY_PHY_AUX_CLK, 0x7709c, BIT(0)),
+	GATE_CLK(GCC_UFS_PHY_RX_SYMBOL_1_CLK, 0x770b8, BIT(0)),
+	GATE_CLK(GCC_UFS_1_CLKREF_EN, 0x8c000, BIT(0)),
+	GATE_CLK(GCC_AGGRE_UFS_PHY_AXI_CLK, 0x770cc, BIT(0)),
 	GATE_CLK(GCC_CFG_NOC_USB3_PRIM_AXI_CLK, 0xf07c, 1),
 	GATE_CLK(GCC_USB30_PRIM_MASTER_CLK, 0xf010, 1),
 	GATE_CLK(GCC_AGGRE_USB3_PRIM_AXI_CLK, 0xf080, 1),
@@ -186,12 +209,14 @@ static const phys_addr_t sc7280_rcg_addrs[] = {
 	0x10f020, // USB30_PRIM_MASTER_CLK_CMD_RCGR
 	0x10f038, // USB30_PRIM_MOCK_UTMI_CLK_CMD_RCGR
 	0x18d058, // PCIE_1_AUX_CLK_CMD_RCGR
+	0x177024, // UFS_PHY_AXI_CLK
 };
 
 static const char *const sc7280_rcg_names[] = {
 	"USB30_PRIM_MASTER_CLK_SRC",
 	"USB30_PRIM_MOCK_UTMI_CLK_SRC",
 	"GCC_PCIE_1_AUX_CLK_SRC",
+	"UFS_PHY_AXI_CLK",
 };
 
 static struct msm_clk_data qcs404_gcc_data = {

@@ -1145,20 +1145,20 @@ static int gpio_request_tail(int ret, const char *nodename,
 		ret = uclass_get_device_by_ofnode(UCLASS_GPIO, args->node,
 						  &desc->dev);
 		if (ret) {
-			debug("%s: uclass_get_device_by_ofnode failed\n",
+			log_err("%s: uclass_get_device_by_ofnode failed\n",
 			      __func__);
 			goto err;
 		}
 	}
 	ret = gpio_find_and_xlate(desc, args);
 	if (ret) {
-		debug("%s: gpio_find_and_xlate failed\n", __func__);
+		log_err("%s: gpio_find_and_xlate failed\n", __func__);
 		goto err;
 	}
 	ret = dm_gpio_requestf(desc, add_index ? "%s.%s%d" : "%s.%s",
 			       nodename, list_name, index);
 	if (ret) {
-		debug("%s: dm_gpio_requestf failed\n", __func__);
+		log_err("%s: dm_gpio_requestf failed\n", __func__);
 		goto err;
 	}
 
@@ -1166,13 +1166,13 @@ static int gpio_request_tail(int ret, const char *nodename,
 	ret = dm_gpio_set_dir_flags(desc,
 				    flags | (desc->flags & GPIOD_MASK_DIR));
 	if (ret) {
-		debug("%s: dm_gpio_set_dir failed\n", __func__);
+		log_err("%s: dm_gpio_set_dir failed\n", __func__);
 		goto err;
 	}
 
 	return 0;
 err:
-	debug("%s: Node '%s', property '%s', failed to request GPIO index %d: %d\n",
+	log_err("%s: Node '%s', property '%s', failed to request GPIO index %d: %d\n",
 	      __func__, nodename, list_name, index, ret);
 	return ret;
 }

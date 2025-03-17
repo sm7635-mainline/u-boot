@@ -1,5 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0
 
+/ {
+	qcom,msm-id = <QCOM_ID_SM7325 0x10000>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 1, 0) 0>;
+};
+
 &framebuffer0 {
 	/delete-property/ power-domains;
 };
