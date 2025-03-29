@@ -4,7 +4,9 @@
  */
 
 #include <dt-bindings/clock/qcom,rpmh.h>
+
 #include <dt-bindings/clock/qcom,sm7635-gcc.h>
+
 #include <dt-bindings/dma/qcom-gpi.h>
 #include <dt-bindings/interconnect/qcom,icc.h>
 #include <dt-bindings/interrupt-controller/arm-gic.h>
@@ -25,12 +27,31 @@
 	clocks {
 		xo_board: xo-board {
 			compatible = "fixed-clock";
-			#clock-cells = <76800000>;
+			clock-frequency = <76800000>;
+			#clock-cells = <0>;
 		};
 
 		sleep_clk: sleep-clk {
 			compatible = "fixed-clock";
-			#clock-cells = <32000>;
+			#clock-cells = <0>;
+		};
+
+		bi_tcxo_div2: bi-tcxo-div2-clk {
+			compatible = "fixed-factor-clock";
+			#clock-cells = <0>;
+
+			clocks = <&rpmhcc RPMH_CXO_CLK>;
+			clock-mult = <1>;
+			clock-div = <2>;
+		};
+
+		bi_tcxo_ao_div2: bi-tcxo-ao-div2-clk {
+			compatible = "fixed-factor-clock";
+			#clock-cells = <0>;
+
+			clocks = <&rpmhcc RPMH_CXO_CLK_A>;
+			clock-mult = <1>;
+			clock-div = <2>;
 		};
 	};
 
@@ -311,12 +332,12 @@
 
 	pmu-a520 {
 		compatible = "arm,cortex-a520-pmu";
-		interrupts = <GIC_PPI 7 IRQ_TYPE_LEVEL_LOW>;
+		interrupts = <GIC_PPI 7 IRQ_TYPE_LEVEL_LOW &ppi_cluster0>;
 	};
 
 	pmu-a720 {
 		compatible = "arm,cortex-a720-pmu";
-		interrupts = <GIC_PPI 7 IRQ_TYPE_LEVEL_LOW>;
+		interrupts = <GIC_PPI 7 IRQ_TYPE_LEVEL_LOW &ppi_cluster1>;
 	};
 
 	psci {
@@ -388,7 +409,7 @@
 		};
 
 		xbl_sc_mem: xbl_sc_region@81800000 {
-			reg = <0x0 0x81800000 0x0 0x200000>;
+			reg = <0x0 0x81800000 0x0 0x40000>;
 			no-map;
 		};
 
@@ -477,8 +498,8 @@
 			no-map;
 		};
 
-		adspslpi_mem: adspslpi@9f300000 {
-			reg = <0 0x9f300000 0 0x3000000>;
+		adspslpi_mem: adspslpi@99300000 {
+			reg = <0 0x99300000 0 0x2800000>;
 			no-map;
 		};
 
@@ -651,7 +672,7 @@
 			compatible = "qcom,sm7635-gcc";
 			reg = <0 0x00100000 0 0x1f4200>;
 
-			clocks = <&rpmhcc RPMH_CXO_CLK>,
+			clocks = <&bi_tcxo_div2>,
 				 <0>, <0>, <0>, <0>, <0>, <0>;
 				 /*<&pcie0_phy QMP_PCIE_PIPE_CLK>,
 				 <&pcie1_phy QMP_PCIE_PIPE_CLK>
@@ -1567,7 +1588,7 @@
 				     "syscon";
 			reg = <0 0x01fc0000 0 0xa0000>;
 
-			clocks = <&rpmhcc RPMH_CXO_CLK>;
+			clocks = <&bi_tcxo_div2>;
 
 			#clock-cells = <1>;
 			#reset-cells = <1>;
@@ -1577,7 +1598,7 @@
 			compatible = "qcom,sm7635-gpucc";
 			reg = <0 0x3d90000 0 0x9800>;
 
-			clocks = <&rpmhcc RPMH_CXO_CLK>,
+			clocks = <&bi_tcxo_div2>,
 				 <&gcc GCC_GPU_GPLL0_CLK_SRC>,
 				 <&gcc GCC_GPU_GPLL0_DIV_CLK_SRC>;
 			power-domains = <&rpmhpd RPMHPD_CX>;
@@ -1639,8 +1660,8 @@
 			compatible = "qcom,sm7635-videocc";
 			reg = <0 0x0aaf0000 0 0x10000>;
 
-			clocks = <&rpmhcc RPMH_CXO_CLK>,
-				 <&rpmhcc RPMH_CXO_CLK_A>,
+			clocks = <&bi_tcxo_div2>,
+				 <&bi_tcxo_ao_div2>,
 				 <&sleep_clk>;
 			power-domains = <&rpmhpd RPMHPD_CX>;
 
@@ -1653,7 +1674,7 @@
 			compatible = "qcom,sm7635-camcc";
 			reg = <0 0xadb0000 0 0x40000>;
 
-			clocks = <&rpmhcc RPMH_CXO_CLK>,
+			clocks = <&bi_tcxo_div2>,
 				 <&sleep_clk>;
 			power-domains = <&rpmhpd RPMHPD_CX>;
 
@@ -1666,7 +1687,7 @@
 			compatible = "qcom,sm7635-dispcc";
 			reg = <0 0x0af00000 0 0x20000>;
 
-			clocks = <&rpmhcc RPMH_CXO_CLK>,
+			clocks = <&bi_tcxo_div2>,
 				 <&gcc GCC_DISP_GPLL0_DIV_CLK_SRC>,
 				 <&sleep_clk>,
 				 <0>, /* dsi0 */

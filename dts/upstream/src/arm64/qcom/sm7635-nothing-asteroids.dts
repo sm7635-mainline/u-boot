@@ -7,15 +7,27 @@
 
 #include "sm7635.dtsi"
 
-#include "pmk8550.dtsi"
-#include "pm8550vs.dtsi"
-#include "pmr735b.dtsi"
+
+/* Decrease the region */
+&trusted_apps_mem {
+	reg = <0 0xe9500000 0 0x5500000>;
+};
 
 / {
         /* Nothing Phone (3a) Pro */
 	model = "Nothing Phone (3a)";
 	compatible = "nothing,asteroids", "qcom,sm7635";
 	chassis-type = "handset";
+
+	/* FIXME: REMOVE ME */
+	qcom,msm-id = <636 0x10000>, <640 0x10000>, <641 0x10000>;
+	/*
+	 * { 636, "VOLCANO" },
+	 * { 640, "VOLCANO6" },
+	 * { 641, "VOLCANO6P" },
+	 */
+	qcom,board-id = <11 0>;
+	qcom,oem-id = <2>; /* (3a) - 1; (3a) Pro - 2 */
 
 	aliases {
 		serial0 = &uart5;
@@ -31,7 +43,7 @@
 
 		framebuffer: framebuffer@e1000000 {
 			compatible = "simple-framebuffer";
-			reg = <0x0 0xe1000000 0x0 (1080 * 2392 * 4)>;
+			reg = <0x0 0xe3940000 0x0 (1080 * 2392 * 4)>;
 			width = <1080>;
 			height = <2392>;
 			stride = <(1080 * 4)>;
@@ -44,8 +56,16 @@
 		#size-cells = <2>;
 		ranges;
 
+		ramoops_mem: ramoops@83a00000 {
+			compatible = "ramoops";
+			reg = <0x0 0x81f20000 0x0 0x400000>;
+			pmsg-size = <0x200000>;
+			mem-type = <2>;
+			console-size = <0x200000>;
+		};
+
 		splash_region@e3940000 {
-			reg = <0x0 0xe3940000 0x0 (1080 * 2392 * 4)>;
+			reg = <0x0 0xe3940000 0x0 0x2b00000>;
 			no-map;
 		};
 	};
@@ -73,64 +93,63 @@
 			   <GCC_PCIE_1_SLV_Q2A_AXI_CLK>;
 };
 
-&gpi_dma0 {
-	status = "okay";
-};
+&camcc { status = "disabled"; };
+&dispcc { status = "disabled"; };
+&videocc { status = "disabled"; };
+&gpucc { status = "disabled"; };
 
-&gpi_dma1 {
-	status = "okay";
+&gpi_dma0 { };
+
+&gpi_dma1 { };
+
+&i2c1 {
+	/* st,st21nfc nfc@8 */
 };
 
 &i2c7 {
+	/* willsemi,wl28681 pmic@35 */
 	/* awinic,aw20036 glyph@3a */
+	/* willsemi,wl28681 pmic@61 */
 };
 
 &i2c8 {
-	status = "okay";
-
 	/* ics haptic@5f */
 };
 
 &spi0 {
-	status = "okay";
-
 	/* focaltech,fts touchscreen@0 */
 };
 
 &spi6 {
-	/* st,st54 nfc@0 */
+	/* st,st54spi nfc@0 */
 };
 
-&qupv3_id_0 {
-	status = "okay";
-};
+&qupv3_id_0 { };
 
-&qupv3_id_1 {
-	status = "okay";
-};
+&qupv3_id_1 { };
 
 &tlmm {
 	/*
 	 * 13:
-	 * 27-30: Fingerprint reader (SPI)
+	 * 63-64: Fingerprint reader (SPI)
 	 */
 	gpio-reserved-ranges = <13 1>, <63 2>;
+	status = "disabled";
 
 	/*
+		GPIO24 - cam_tele_ois
+		GPIO71 - ai_key_default
+		GPIO141 - tfa98xx
 		GPIO143 - ics_haptic_rst
 	*/
 };
 
-&uart5 {
-	status = "okay";
-};
+&uart5 { };
 
 &uart11 {
 	/delete-property/ interrupts;
-	interrupts-extended = <&intc GIC_SPI 586 IRQ_TYPE_LEVEL_HIGH>,
+	interrupts-extended = <&intc GIC_SPI 586 IRQ_TYPE_LEVEL_HIGH 0>,
 			      <&tlmm 51 IRQ_TYPE_LEVEL_HIGH>;
-
-	status = "okay";
 
 	/* Bluetooth */
 };
